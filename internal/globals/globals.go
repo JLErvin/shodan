@@ -21,4 +21,7 @@ const (
 	DIFF    = "-"
 	QUOT    = "/"
 	PROD    = "*"
+	ASSIGN  = "="
+	LIST    = "list"
+	CLEAR   = "clear"
 )

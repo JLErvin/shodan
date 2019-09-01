@@ -67,16 +67,19 @@ func (c *Calculator) Run() {
 
 func (c *Calculator) evaluate(t *scan.Token) *scan.Token {
 	peak := c.queue.Peak()
-	if peak.String() == "=" {
+	if peak.String() == g.ASSIGN {
+		if c.isKeyword(t.String()) {
+			return scan.NewToken("Error, cannot use keyword as var name", 0)
+		}
 		c.cycleToken()
 		n := c.expression(c.queue.RemoveFront())
 		c.env[t.String()] = n.GetValue()
 		return scan.NewToken("Saved "+strconv.Itoa(int(n.GetValue()))+" to identifier "+t.String(), 0)
-	} else if t.String() == "clear" {
+	} else if t.String() == g.CLEAR {
 		toDelete := c.queue.RemoveFront()
 		delete(c.env, toDelete.String())
 		return scan.NewToken("Deleted identifier "+toDelete.String(), 0)
-	} else if t.String() == "list" {
+	} else if t.String() == g.LIST {
 		var pretty string
 		for key, val := range c.env {
 			pretty += key + " = " + strconv.Itoa(int(val)) + "\n"
@@ -162,4 +165,9 @@ func (c *Calculator) factor(t *scan.Token) *scan.Token {
 
 func (c *Calculator) cycleToken() {
 	c.queue.RemoveFront()
+}
+
+func (c *Calculator) isKeyword(w string) bool {
+	_, err := c.keywords[w]
+	return err
 }
