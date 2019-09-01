@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"shodan/internal/globals"
 	"strconv"
 	"strings"
 )
@@ -30,13 +31,13 @@ func (s *Scanner) NextToken() *Token {
 			n, err := strconv.Atoi(element)
 			var nextToken *Token
 			if err == nil {
-				nextToken = NewToken("int", float64(n))
+				nextToken = NewToken(g.INT, float64(n))
 			} else {
 				nextToken = NewToken(element, 0)
 			}
 			s.buffer.Add(nextToken)
 		}
-		end := NewToken("newline", 0)
+		end := NewToken(g.NEWLINE, 0)
 		s.buffer.Add(end)
 	}
 	return s.buffer.RemoveFront()
