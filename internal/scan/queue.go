@@ -55,3 +55,11 @@ func (q *Queue) Len() uint64 {
 func (q *Queue) Peak() *Token {
 	return q.front.token
 }
+
+func (q *Queue) String() string {
+	s := ""
+	for tmp := q.front; tmp != nil; tmp = tmp.next {
+		s += tmp.token.String() + " "
+	}
+	return s
+}

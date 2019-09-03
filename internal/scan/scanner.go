@@ -3,10 +3,12 @@ package scan
 import (
 	"bufio"
 	"fmt"
+	//"math"
 	"os"
 	"shodan/internal/globals"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type Scanner struct {
@@ -24,8 +26,6 @@ func NewScanner() *Scanner {
 // Returns the next Token in the scanner.
 // If the scanner buffer is currently empty, prompts
 // the user for input and adds contents to the buffer.
-// If a token causes an error, that token will be returned
-// with an error value of true
 func (s *Scanner) NextToken() *Token {
 	if s.buffer.Len() == 0 {
 		fmt.Print("> ")
@@ -38,15 +38,67 @@ func (s *Scanner) NextToken() *Token {
 }
 
 func (s *Scanner) parse(raw string) {
-	tmpBuf := strings.Split(raw, " ")
-	for _, element := range tmpBuf {
-		n, err := strconv.Atoi(element)
-		var nextToken *Token
-		if err == nil {
-			nextToken = NewToken(g.INT, float64(n))
+	raw = strings.ReplaceAll(raw, " ", "")
+	lastOp := false
+	for i := 0; i < len(raw); i++ {
+		cur := string(raw[i])
+		if cur == g.LPAREN || cur == g.RPAREN {
+			s.buffer.Add(NewToken(string(raw[i]), 0))
+		} else if unicode.IsDigit(rune(raw[i])) { // a pure number, starts w/ digit
+			var tmp string
+			tmp, i = s.parseDigit(raw, i)
+			n, _ := strconv.Atoi(tmp)
+			s.buffer.Add(NewToken(g.INT, float64(n)))
+		} else if s.isOperator(raw[i]) && (lastOp || i == 0) { // unary operator
+			isNeg := raw[i] == '-'
+			i++
+			var tmp string
+			if i < len(raw) && unicode.IsDigit(rune(raw[i])) {
+				tmp, i = s.parseDigit(raw, i)
+				n, _ := strconv.Atoi(tmp)
+				s.buffer.Add(NewUnaryToken(g.INT, float64(n), isNeg))
+			} else {
+				tmp, i = s.parseWord(raw, i)
+				s.buffer.Add(NewUnaryToken(tmp, 0, isNeg))
+			}
+		} else if s.isOperator(raw[i]) && !lastOp { // a binary operator
+			lastOp = true
+			s.buffer.Add(NewToken(string(raw[i]), 0))
+		} else if unicode.IsLetter(rune(raw[i])) { // either an id (var) or keyword
+			var tmp string
+			tmp, i = s.parseWord(raw, i)
+			s.buffer.Add(NewToken(tmp, 0))
 		} else {
-			nextToken = NewToken(element, 0)
+			fmt.Println("not identified")
 		}
-		s.buffer.Add(nextToken)
 	}
+}
+
+func (s *Scanner) parseWord(raw string, i int) (string, int) {
+	tmp := string(raw[i])
+	i++
+	for ; i < len(raw) && s.isIdentifier(raw[i]); i++ {
+		tmp += string(raw[i])
+	}
+	i--
+	return tmp, i
+}
+
+func (s *Scanner) parseDigit(raw string, i int) (string, int) {
+	tmp := string(raw[i])
+	i++
+	for ; i < len(raw) && unicode.IsDigit(rune(raw[i])); i++ {
+		tmp += string(raw[i])
+	}
+	i--
+	return tmp, i
+}
+
+func (s *Scanner) isIdentifier(c byte) bool {
+	return unicode.IsDigit(rune(c)) || unicode.IsLetter(rune(c)) || c == '_'
+}
+
+func (s *Scanner) isOperator(c byte) bool {
+	t := string(c)
+	return t == g.SUM || t == g.DIFF || t == g.PROD || t == g.QUOT || t == g.ASSIGN
 }

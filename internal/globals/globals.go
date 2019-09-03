@@ -24,4 +24,5 @@ const (
 	ASSIGN  = "="
 	LIST    = "list"
 	CLEAR   = "clear"
+	ABS     = "abs"
 )

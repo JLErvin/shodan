@@ -36,6 +36,7 @@ func NewCalculator() *Calculator {
 	calc.keywords[g.LOG] = math.Log2
 	calc.keywords[g.LN] = math.Log
 	calc.keywords[g.SQRT] = math.Sqrt
+	calc.keywords[g.ABS] = math.Abs
 
 	calc.env["PI"] = math.Pi
 	calc.env["E"] = math.E
@@ -145,7 +146,19 @@ func (c *Calculator) power(t *scan.Token) *scan.Token {
 }
 
 func (c *Calculator) factor(t *scan.Token) *scan.Token {
-	if t.String() == g.INT {
+	if t.Unary() {
+		// If a factor is unary, remove the unary flag and
+		// then call factor on the same token
+		// When we return, multiple by negative 1 if
+		// the value was originally negative
+		t.RemoveUnary()
+		t1 := c.factor(t)
+		if t.Neg() {
+			return scan.NewToken(g.INT, -1*t1.GetValue())
+		} else {
+			return scan.NewToken(g.INT, t1.GetValue())
+		}
+	} else if t.String() == g.INT {
 		return t
 	} else if val, err := c.env[t.String()]; err {
 		return scan.NewToken(g.INT, val)
@@ -160,6 +173,7 @@ func (c *Calculator) factor(t *scan.Token) *scan.Token {
 		c.cycleToken()
 		return t1
 	}
+	fmt.Println("Not identified by calc")
 	return scan.NewToken(g.INT, -1)
 }
 
