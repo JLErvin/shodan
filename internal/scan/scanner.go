@@ -44,11 +44,13 @@ func (s *Scanner) parse(raw string) {
 		cur := string(raw[i])
 		if cur == g.LPAREN || cur == g.RPAREN {
 			s.buffer.Add(NewToken(string(raw[i]), 0))
+			lastOp = false
 		} else if unicode.IsDigit(rune(raw[i])) { // a pure number, starts w/ digit
 			var tmp string
 			tmp, i = s.parseDigit(raw, i)
 			n, _ := strconv.Atoi(tmp)
 			s.buffer.Add(NewToken(g.INT, float64(n)))
+			lastOp = false
 		} else if s.isOperator(raw[i]) && (lastOp || i == 0) { // unary operator
 			isNeg := raw[i] == '-'
 			i++
@@ -68,6 +70,7 @@ func (s *Scanner) parse(raw string) {
 			var tmp string
 			tmp, i = s.parseWord(raw, i)
 			s.buffer.Add(NewToken(tmp, 0))
+			lastOp = false
 		} else {
 			fmt.Println("not identified")
 		}

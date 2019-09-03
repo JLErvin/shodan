@@ -72,7 +72,7 @@ func (c *Calculator) evaluate(t *scan.Token) *scan.Token {
 		if c.isKeyword(t.String()) {
 			return scan.NewToken("Error, cannot use keyword as var name", 0)
 		}
-		c.cycleToken()
+		c.cycleToken() // skip over the =
 		n := c.expression(c.queue.RemoveFront())
 		c.env[t.String()] = n.GetValue()
 		return scan.NewToken("Saved "+strconv.Itoa(int(n.GetValue()))+" to identifier "+t.String(), 0)
