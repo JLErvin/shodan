@@ -3,7 +3,6 @@ package scan
 import (
 	"bufio"
 	"fmt"
-	//"math"
 	"os"
 	"shodan/internal/globals"
 	"strconv"
@@ -48,8 +47,8 @@ func (s *Scanner) parse(raw string) {
 		} else if unicode.IsDigit(rune(raw[i])) { // a pure number, starts w/ digit
 			var tmp string
 			tmp, i = s.parseDigit(raw, i)
-			n, _ := strconv.Atoi(tmp)
-			s.buffer.Add(NewToken(g.INT, float64(n)))
+			n, _ := strconv.ParseFloat(tmp, 64)
+			s.buffer.Add(NewToken(g.INT, n))
 			lastOp = false
 		} else if s.isOperator(raw[i]) && (lastOp || i == 0) { // unary operator
 			isNeg := raw[i] == '-'
@@ -57,8 +56,8 @@ func (s *Scanner) parse(raw string) {
 			var tmp string
 			if i < len(raw) && unicode.IsDigit(rune(raw[i])) {
 				tmp, i = s.parseDigit(raw, i)
-				n, _ := strconv.Atoi(tmp)
-				s.buffer.Add(NewUnaryToken(g.INT, float64(n), isNeg))
+				n, _ := strconv.ParseFloat(tmp, 64)
+				s.buffer.Add(NewUnaryToken(g.INT, n, isNeg))
 			} else {
 				tmp, i = s.parseWord(raw, i)
 				s.buffer.Add(NewUnaryToken(tmp, 0, isNeg))

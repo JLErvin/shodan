@@ -75,7 +75,7 @@ func (c *Calculator) evaluate(t *scan.Token) *scan.Token {
 		c.cycleToken() // skip over the =
 		n := c.expression(c.queue.RemoveFront())
 		c.env[t.String()] = n.GetValue()
-		return scan.NewToken("Saved "+strconv.Itoa(int(n.GetValue()))+" to identifier "+t.String(), 0)
+		return scan.NewToken(t.String()+" = "+fmt.Sprintf("%g", n.GetValue()), 0)
 	} else if t.String() == g.CLEAR {
 		toDelete := c.queue.RemoveFront()
 		delete(c.env, toDelete.String())
