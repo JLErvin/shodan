@@ -11,7 +11,7 @@ from the 1994 video game `System Shock`.
 
 `shodan` is a fast, command-line calculator.
 I wrote it primarly as a way to get experience with `go`, scanning, parsing, and grammars.
-The program using LL(1) parsing and scans lines in linear time.
+The program using recursive descent parsing and scans lines in linear time.
 
 ## Grammar
 
